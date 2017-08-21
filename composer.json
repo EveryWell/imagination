@@ -7,11 +7,11 @@
         "laravel",
         "cache"
     ],
-    "license": "BSD-3-Clause",
+    "license": "GPL",
     "authors": [
         {
-            "name": "Jason Lewis",
-            "email": "jason.lewis1991@gmail.com"
+            "name": "Andrea Ognibene",
+            "email": "aneverywell@gmail.com"
         }
     ],
     "require": {
