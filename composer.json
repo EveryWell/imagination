@@ -18,19 +18,9 @@
         "php": "^5.5.9 || ^7.0",
         "intervention/image": "^2.3"
     },
-    "require-dev": {
-
-    },
     "autoload": {
         "psr-4": {
             "EveryWell\\Imagination\\": "src/"
         }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "EveryWell\\Imagination\\Tests\\": "tests/"
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+    }
 }
