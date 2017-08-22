@@ -8,39 +8,11 @@ use Intervention\Image\Facades\Image;
 
 trait HasImages
 {
-    /**
-     * The default images dimensions.
-     *
-     * @var array
-     */
-    protected $imagesDimensions = [
-        'xsmall' => [
-            'width' => 64,
-            'height' => 'auto'
-        ],
-        'small' => [
-            'width' => 144,
-            'height' => 'auto'
-        ],
-        'medium' => [
-            'width' => 800,
-            'height' => 'auto'
-        ],
-        'large' => [
-            'width' => 1024,
-            'height' => 'auto'
-        ],
-        'xlarge' => [
-            'width' => 1920,
-            'height' => 'auto'
-        ]
-    ];
-
     public function setAttribute($key, $value)
     {
         // If a 'set' mutator exists then it has priority
         // If the attribute doesn't exists in the images array then just call the parent
-        if ($this->hasSetMutator($key) || !array_key_exists($key, $this->images)) {
+        if ($this->hasSetMutator($key) || (!in_array($key, $this->images) && !array_key_exists($key, $this->images))) {
             parent::setAttribute($key, $value);
         } else {
             $this->setImage($key, $value);
@@ -51,64 +23,233 @@ trait HasImages
     {
         // If a 'get' mutator exists then it has priority
         // If the attribute doesn't exists in the images array then just call the parent
-        if ($this->hasGetMutator($key) || !array_key_exists($key, $this->images)) {
+        if ($this->hasGetMutator($key) || (!in_array($key, $this->images) && !array_key_exists($key, $this->images))
+        ) {
             return parent::getAttribute($key);
         } else {
             return $this->getImage($key);
         }
     }
 
+    /**
+     * Convert the model's attributes to an array.
+     *
+     * @return array
+     */
+    public function attributesToArray()
+    {
+        $objectName = config('imagination.res_name');
+
+        $attributes = parent::attributesToArray();
+
+        foreach ($this->images as $imageKey) {
+
+            if (!empty($this->attributes[$imageKey])) {
+                $attributes[$imageKey . '_' . $objectName] = $this->getImageRes($imageKey);
+            }
+        }
+
+        return $attributes;
+    }
+
     protected function setImage($imageKey, $value)
     {
         $imagePath = $this->getImagePath($imageKey);
 
-        // TODO: delete all images versions (wildcard?)
-//        if (!empty($this->attributes[$imageKey]) && Storage::exists($imagePath . '/' . $this->attributes[$imageKey])) {
-//            foreach ($this->images[$imageKey]['dimensions'] as $dimension) {
-//                Storage::delete($imagePath . $this->attributes['image']);
-//            }
-//        }
-
-        /**
-         * Reset key value (If a new image is being uploaded it will be persisted to storage in the next step)
-         */
-        $this->attributes[$imageKey] = '';
+        if (!empty($this->attributes[$imageKey])) {
+            $this->deleteImage($imageKey);
+        }
 
         /**
          * Try to create an image from the given value,
          * if the image is readable then it is persisted to storage
          */
         try {
+
+            $disk = $this->getImageDisk($imageKey);
+
             $image = Image::make($value);
 
             do {
-                $imageName = str_random() . '.jpg';
-            } while (Storage::exists($imagePath . '/' . $imageName));
+                $imageName = str_random() . '.' . $this->getImageFormat($imageKey);
+            } while ($disk->exists($imagePath . '/' . $imageName));
 
             // TODO: Handle private images
-            Storage::put($imagePath . '/' . $imageName, $image->encode('jpg'), 'public');
+            $disk->put($imagePath . '/' . $imageName, $image->encode($this->getImageFormat($imageKey)), 'public');
 
             $this->attributes[$imageKey] = $imageName;
 
+            $this->createImages($imageKey, $value);
+
         } catch(Exception $e) {
 
-            die('The image is not valid.');
+            die('The image is not valid. ' . $e->getMessage());
         }
     }
 
-    protected function getImage($imageKey, $size = 'small')
+    protected function getImage($imageKey)
     {
-        $imagePath = $this->getImagePath($imageKey);
+        return $this->getImageRes($imageKey);
+    }
 
-        return Storage::url($imagePath . '/' . $this->attributes[$imageKey]);
+    protected function getImageRes($imageKey)
+    {
+        $res = [];
+
+        $disk = $this->getImageDisk($imageKey);
+
+        $dimensions = $this->getImageDimensions($imageKey);
+
+        foreach ($dimensions as $dimensionName => $dimension) {
+
+            $imagePath = $this->getImageDimensionPath($imageKey, $dimension);
+
+            $res[$dimensionName] = $disk->url($imagePath);
+        }
+
+        return $res;
+    }
+
+    protected function createImages($imageKey, $value)
+    {
+        $dimensions = collect($this->getImageDimensions($imageKey));
+
+        foreach ($dimensions as $dimension) {
+
+            $this->createImage($imageKey, $value, $dimension);
+        }
+    }
+
+    protected function createImage($imageKey, $value, $dimension)
+    {
+        $disk = $this->getImageDisk($imageKey);
+
+        $imagePath = $this->getImageDimensionPath($imageKey, $dimension);
+
+        $scalingMode = $this->getImageScalingMode($imageKey);
+
+        $image = Image::make($value);
+
+        $width = !empty($dimension['width']) ? $dimension['width'] : null;
+        $height = !empty($dimension['height']) ? $dimension['height'] : null;
+
+        switch ($scalingMode) {
+
+            case 'fit':
+                $image->fit($width, $height);
+                break;
+
+            case 'resize':
+            default:
+                $image->resize($width, $height, function ($constraint) use ($dimension) {
+                    $constraint->aspectRatio();
+                });
+        }
+
+        $disk->put($imagePath, $image->encode($this->getImageFormat($imageKey)), 'public');
+    }
+
+    protected function deleteImage($imageKey)
+    {
+        $disk = $this->getImageDisk($imageKey);
+
+        $fileInfo = $this->getFileInfo($imageKey);
+
+        $dimensions = $this->getImageDimensions($imageKey);
+
+        foreach ($dimensions as $dimension) {
+
+            $imagePath = $this->getImageDimensionPath($imageKey, $dimension);
+
+            if ($disk->exists($imagePath)) {
+                $disk->delete($imagePath);
+            }
+        }
+
+        $originalFile = $this->getImagePath($imageKey) . '/' . $fileInfo['name'] . '.' . $fileInfo['extension'];
+
+        if ($disk->exists($originalFile)) {
+            $disk->delete($originalFile);
+        }
+
+        $this->attributes[$imageKey] = '';
+    }
+
+    protected function getImageDimensionPath($imageKey, $dimension)
+    {
+        $fileInfo = $this->getFileInfo($imageKey);
+
+        $path = $this->getImagePath($imageKey) . '/' . $fileInfo['name'];
+
+        if (!empty($dimension['width'])) {
+            $path .= '_w_' . $dimension['width'];
+        }
+
+        if (!empty($dimension['height'])) {
+            $path .= '_h_' . $dimension['height'];
+        }
+
+        $path .= '.' . $fileInfo['extension'];
+
+        return $path;
+    }
+
+    protected function getFileInfo($imageKey)
+    {
+        return [
+            'name' => pathinfo($this->attributes[$imageKey], PATHINFO_FILENAME),
+            'extension' => pathinfo($this->attributes[$imageKey], PATHINFO_EXTENSION)
+        ];
+    }
+
+    protected function getImageDimensions($imageKey)
+    {
+        $dimensions = config('imagination.dimensions');
+
+        if (!empty($this->images[$imageKey]['dimensions'])) {
+            $dimensions = $this->images[$imageKey]['dimensions'];
+        }
+
+        return $dimensions;
+    }
+
+    protected function getImageFormat($imageKey)
+    {
+        $format = config('imagination.format');
+
+        if (!empty($this->images[$imageKey]['format'])) {
+            $format = $this->images[$imageKey]['format'];
+        }
+
+        return $format;
+    }
+
+    protected function getImageScalingMode($imageKey)
+    {
+        $scalingMode = config('imagination.scaling_mode');
+
+        if (!empty($this->images[$imageKey]['scaling_mode'])) {
+            $scalingMode = $this->images[$imageKey]['scaling_mode'];
+        }
+
+        return $scalingMode;
     }
 
     protected function getImagePath($imageKey)
     {
-        $basePath = config('imagination')->get('base_path');
+        $basePath = config('imagination.base_path');
 
-        dd($basePath);
+        return $basePath . str_plural(strtolower(class_basename($this))) . '/' . str_plural(strtolower($imageKey));
+    }
 
-        return str_plural(strtolower(class_basename($this))) . '/' . str_plural(strtolower($imageKey));
+    protected function getImageDisk($imageKey)
+    {
+        $disk = config('imagination.disk');
+
+        if (!empty($this->images[$imageKey]['disk'])) {
+            $disk = $this->images[$imageKey]['disk'];
+        }
+
+        return Storage::disk($disk);
     }
 }
