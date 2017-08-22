@@ -27,7 +27,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Res name
+    | Resources object name
     |--------------------------------------------------------------------------
     |
     | The reference appended to the attribute name to identify the image object
@@ -68,19 +68,24 @@ return [
     |
     */
     'dimensions' => [
-        'xsmall' => [
+        [
+            'name' => 'xsmall',
             'width' => 64
         ],
-        'small' => [
+        [
+            'name' => 'small',
             'width' => 144
         ],
-        'medium' => [
+        [
+            'name' => 'medium',
             'width' => 800
         ],
-        'large' => [
+        [
+            'name' => 'large',
             'width' => 1024
         ],
-        'xlarge' => [
+        [
+            'name' => 'xlarge',
             'width' => 1920
         ]
     ]

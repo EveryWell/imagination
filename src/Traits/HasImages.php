@@ -44,9 +44,7 @@ trait HasImages
 
         foreach ($this->images as $imageKey) {
 
-            if (!empty($this->attributes[$imageKey])) {
-                $attributes[$imageKey . '_' . $objectName] = $this->getImageRes($imageKey);
-            }
+            $attributes[$imageKey . '_' . $objectName] = $this->getImageRes($imageKey);
         }
 
         return $attributes;
@@ -94,17 +92,21 @@ trait HasImages
 
     protected function getImageRes($imageKey)
     {
+        if (empty($this->attributes[$imageKey])) {
+            return null;
+        }
+
         $res = [];
 
         $disk = $this->getImageDisk($imageKey);
 
         $dimensions = $this->getImageDimensions($imageKey);
 
-        foreach ($dimensions as $dimensionName => $dimension) {
+        foreach ($dimensions as $dimension) {
 
             $imagePath = $this->getImageDimensionPath($imageKey, $dimension);
 
-            $res[$dimensionName] = $disk->url($imagePath);
+            $res[$dimension['name']] = $disk->url($imagePath);
         }
 
         return $res;
@@ -179,15 +181,7 @@ trait HasImages
     {
         $fileInfo = $this->getFileInfo($imageKey);
 
-        $path = $this->getImagePath($imageKey) . '/' . $fileInfo['name'];
-
-        if (!empty($dimension['width'])) {
-            $path .= '_w_' . $dimension['width'];
-        }
-
-        if (!empty($dimension['height'])) {
-            $path .= '_h_' . $dimension['height'];
-        }
+        $path = $this->getImagePath($imageKey) . '/' . $fileInfo['name'] . '_' . $dimension['name'] . '';
 
         $path .= '.' . $fileInfo['extension'];
 
