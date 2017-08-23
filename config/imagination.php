@@ -34,6 +34,7 @@ return [
     | containing all the image versions.
     |
     */
+
     'res_name' => 'res',
 
     /*
@@ -45,6 +46,7 @@ return [
     | Accepted values: 'fit', 'resize'.
     |
     */
+
     'scaling_mode' => 'resize',
 
     /*
@@ -56,6 +58,7 @@ return [
     | Accepted values: 'jpg', 'png', 'bmp', 'gif', 'original'.
     |
     */
+
     'format' => 'jpg',
 
     /*
@@ -67,6 +70,7 @@ return [
     | uploading a new image.
     |
     */
+    
     'dimensions' => [
         [
             'name' => 'xsmall',
