@@ -7,7 +7,7 @@
         "laravel",
         "cache"
     ],
-    "license": "GPL",
+    "license": "MIT",
     "authors": [
         {
             "name": "Andrea Ognibene",
@@ -23,5 +23,12 @@
         "psr-4": {
             "EveryWell\\Imagination\\": "src/"
         }
-    }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
