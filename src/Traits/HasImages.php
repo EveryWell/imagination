@@ -58,31 +58,21 @@ trait HasImages
             $this->deleteImage($imageKey);
         }
 
-        /**
-         * Try to create an image from the given value,
-         * if the image is readable then it is persisted to storage
-         */
-        try {
 
-            $disk = $this->getImageDisk($imageKey);
+        $disk = $this->getImageDisk($imageKey);
 
-            $image = Image::make($value);
+        $image = Image::make($value);
 
-            do {
-                $imageName = str_random() . '.' . $this->getImageFormat($imageKey);
-            } while ($disk->exists($imagePath . '/' . $imageName));
+        do {
+            $imageName = str_random() . '.' . $this->getImageFormat($imageKey);
+        } while ($disk->exists($imagePath . '/' . $imageName));
 
-            // TODO: Handle private images
-            $disk->put($imagePath . '/' . $imageName, $image->encode($this->getImageFormat($imageKey)), 'public');
+        // TODO: Handle private images
+        $disk->put($imagePath . '/' . $imageName, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
 
-            $this->attributes[$imageKey] = $imageName;
+        $this->attributes[$imageKey] = $imageName;
 
-            $this->createImages($imageKey, $value);
-
-        } catch(Exception $e) {
-
-            die('The image is not valid. ' . $e->getMessage());
-        }
+        $this->createImages($imageKey, $value);
     }
 
     protected function getImage($imageKey)
@@ -148,7 +138,7 @@ trait HasImages
                 });
         }
 
-        $disk->put($imagePath, $image->encode($this->getImageFormat($imageKey)), 'public');
+        $disk->put($imagePath, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
     }
 
     protected function deleteImage($imageKey)
