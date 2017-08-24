@@ -11,7 +11,7 @@ return [
     |
     */
 
-    'disk' => env('IMAGINATION_DISK', 'public'),
+    'disk' => env('DISK_DRIVER', 'public'),
 
     /*
     |--------------------------------------------------------------------------
@@ -23,7 +23,7 @@ return [
     |
     */
 
-    'base_path' => env('IMAGINATION_BASE_PATH', ''),
+    'base_path' => env('DISK_BASE_PATH', ''),
 
     /*
     |--------------------------------------------------------------------------
@@ -47,7 +47,7 @@ return [
     |
     */
 
-    'scaling_mode' => 'resize',
+    'scaling_mode' => 'fit',
 
     /*
     |--------------------------------------------------------------------------
@@ -70,27 +70,41 @@ return [
     | uploading a new image.
     |
     */
-    
+
     'dimensions' => [
         [
-            'name' => 'xsmall',
+            'name' => 'small',
             'width' => 64
         ],
         [
-            'name' => 'small',
-            'width' => 144
-        ],
-        [
             'name' => 'medium',
-            'width' => 800
+            'width' => 144
         ],
         [
             'name' => 'large',
             'width' => 1024
-        ],
-        [
-            'name' => 'xlarge',
-            'width' => 1920
         ]
-    ]
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Job class
+    |--------------------------------------------------------------------------
+    |
+    | Here you may define a different job class.
+    |
+    */
+
+    'job_class' => \EveryWell\Imagination\Jobs\CreateImageJob::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Queue name
+    |--------------------------------------------------------------------------
+    |
+    | Here you may define a different queue for the image creation jobs.
+    |
+    */
+
+    'queue' => 'default'
 ];
