@@ -58,6 +58,16 @@ trait HasImages
             $this->deleteImage($imageKey);
         }
 
+        if (empty($value)) {
+            $this->attributes[$imageKey] = null;
+            return;
+        }
+
+        /**
+         * Try to create an image from the given value,
+         * if the image is readable then it is persisted to storage
+         */
+        try {
 
         $disk = $this->getImageDisk($imageKey);
 
