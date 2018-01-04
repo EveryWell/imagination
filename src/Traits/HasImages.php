@@ -58,6 +58,10 @@ trait HasImages
             $this->deleteImage($imageKey);
         }
 
+        if (empty($value)) {
+            $this->attributes[$imageKey] = null;
+            return;
+        }
 
         $disk = $this->getImageDisk($imageKey);
 
