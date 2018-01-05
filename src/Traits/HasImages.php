@@ -42,9 +42,17 @@ trait HasImages
 
         $attributes = parent::attributesToArray();
 
-        foreach ($this->images as $imageKey) {
+        foreach ($this->images as $imageKey => $value) {
 
-            $attributes[$imageKey . '_' . $objectName] = $this->getImageRes($imageKey);
+            if (gettype($value) == 'string') {
+
+                $attributes[$value . '_' . $objectName] = $this->getImageRes($value);
+            }
+            elseif (gettype($value) == 'array') {
+
+                $attributes[$imageKey . '_' . $objectName] = $this->getImageRes($imageKey);
+            }
+
         }
 
         return $attributes;
