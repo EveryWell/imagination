@@ -84,27 +84,5 @@ return [
             'name' => 'large',
             'width' => 1024
         ]
-    ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Job class
-    |--------------------------------------------------------------------------
-    |
-    | Here you may define a different job class.
-    |
-    */
-
-    'job_class' => \EveryWell\Imagination\Jobs\CreateImageJob::class,
-
-    /*
-    |--------------------------------------------------------------------------
-    | Queue name
-    |--------------------------------------------------------------------------
-    |
-    | Here you may define a different queue for the image creation jobs.
-    |
-    */
-
-    'queue' => 'default'
+    ]
 ];
