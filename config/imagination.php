@@ -103,5 +103,5 @@ return [
     |
     */
 
-    'store_original' => false
+    'store_original' => false   
 ];
