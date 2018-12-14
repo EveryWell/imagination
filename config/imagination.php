@@ -99,7 +99,7 @@ return [
     | Store original
     |--------------------------------------------------------------------------
     |
-    | Do ya wanna keep dat fat cow?
+    | Store original too?
     |
     */
 
