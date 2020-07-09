@@ -5,6 +5,7 @@ namespace EveryWell\Imagination\Traits;
 use Exception;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
+use Illuminate\Support\Str;
 
 trait HasImages
 {
@@ -76,7 +77,7 @@ trait HasImages
         $image = Image::make($value);
 
         do {
-            $imageName = str_random() . '.' . $this->getImageFormat($imageKey);
+            $imageName = Str::random() . '.' . $this->getImageFormat($imageKey);
         } while ($disk->exists($imagePath . '/' . $imageName));
 
         // TODO: Handle private images
@@ -235,7 +236,7 @@ trait HasImages
     {
         $basePath = config('imagination.base_path');
 
-        return $basePath . str_plural(strtolower(class_basename($this))) . '/' . str_plural(strtolower($imageKey));
+        return $basePath . Str::plural(strtolower(class_basename($this))) . '/' . Str::plural(strtolower($imageKey));
     }
 
     protected function getImageDisk($imageKey)
