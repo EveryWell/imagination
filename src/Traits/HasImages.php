@@ -81,7 +81,9 @@ trait HasImages
         } while ($disk->exists($imagePath . '/' . $imageName));
 
         // TODO: Handle private images
-        $disk->put($imagePath . '/' . $imageName, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
+        if (empty($this->images[$imageKey]['discard_original']) || (!empty($this->images[$imageKey]['discard_original']) && $this->images[$imageKey]['discard_original'] == false)) {
+            $disk->put($imagePath . '/' . $imageName, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
+        }
 
         $this->attributes[$imageKey] = $imageName;
 
