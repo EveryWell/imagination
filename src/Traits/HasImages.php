@@ -81,7 +81,9 @@ trait HasImages
         } while ($disk->exists($imagePath . '/' . $imageName));
 
         // TODO: Handle private images
-        $disk->put($imagePath . '/' . $imageName, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
+        if (empty($this->images[$imageKey]['discard_original']) || (!empty($this->images[$imageKey]['discard_original']) && $this->images[$imageKey]['discard_original'] == false)) {
+            $disk->put($imagePath . '/' . $imageName, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
+        }
 
         $this->attributes[$imageKey] = $imageName;
 
@@ -127,31 +129,11 @@ trait HasImages
 
     protected function createImage($imageKey, $value, $dimension)
     {
-        $disk = $this->getImageDisk($imageKey);
+        $jobClass = config('imagination.job_class');
 
-        $imagePath = $this->getImageDimensionPath($imageKey, $dimension);
+        $job = new $jobClass($this, $imageKey, $dimension, $value);
 
-        $scalingMode = $this->getImageScalingMode($imageKey);
-
-        $image = Image::make($value);
-
-        $width = !empty($dimension['width']) ? $dimension['width'] : null;
-        $height = !empty($dimension['height']) ? $dimension['height'] : null;
-
-        switch ($scalingMode) {
-
-            case 'fit':
-                $image->fit($width, $height);
-                break;
-
-            case 'resize':
-            default:
-                $image->resize($width, $height, function ($constraint) use ($dimension) {
-                    $constraint->aspectRatio();
-                });
-        }
-
-        $disk->put($imagePath, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
+        dispatch($job);
     }
 
     protected function deleteImage($imageKey)
