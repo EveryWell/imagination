@@ -17,18 +17,11 @@
     "require": {
         "php": "^5.5.9 || ^7.0",
         "intervention/image": "^2.3",
-        "illuminate/support": "^5.4",
-        "illuminate/bus": "^5.4",
-        "illuminate/queue": "^5.4"
+        "illuminate/support": "^6.0 || ^7.0"
     },
     "autoload": {
         "psr-4": {
             "EveryWell\\Imagination\\": "src/"
-        }
-    },
-    "extra": {
-        "branch-alias": {
-            "dev-master": "1.0-dev"
         }
     },
     "minimum-stability": "dev",
