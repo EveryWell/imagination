@@ -81,7 +81,9 @@ trait HasImages
         } while ($disk->exists($imagePath . '/' . $imageName));
 
         // TODO: Handle private images
-        $disk->put($imagePath . '/' . $imageName, (string) $image->encode($this->getImageFormat($imageKey)), 'public');
+        if(config('imagination.store_original') === true) {
+            $disk->put($imagePath . '/' . $imageName, (string)$image->encode($this->getImageFormat($imageKey)), 'public');
+        }
 
         $this->attributes[$imageKey] = $imageName;
 
