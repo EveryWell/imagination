@@ -72,28 +72,12 @@ class News extends Model implements HasImagesContract
         'text',
         'banner',
         'image'
-    ];
+    ]
         
     protected $images = [
         'banner',
-        'image' => [
-            'discard_original' => true, // Optional: if true, doesn't save the original version of the image
-            'dimensions' => [           // Optional: specifies different dimensions than the default config
-                [
-                    'name' => 'thumb',
-                    'width' => 150
-                ],
-                [
-                    'name' => 'small',
-                    'width' => 250
-                ],
-                [
-                    'name' => 'regular',
-                    'width' => 600
-                ]
-            ]
-        ]
-    ];
+        'image'
+    ]
 ```
 
 And that's it!
